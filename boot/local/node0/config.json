@@ -26,7 +26,7 @@
     "endpoints": []
   },
   "network": {
-    "addr": "0.0.0.0:24567",
+    "addr": "0.0.0.0:24560",
     "external_address": "",
     "boot_nodes": "",
     "max_num_peers": 40,

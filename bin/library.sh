@@ -3,65 +3,37 @@ export BOOT_DIR=${ROOT}/boot
 export RUN_DIR=${ROOT}/run
 
 export neard_bin=${NEARD_BIN:-"neard"}
-export bootnode_bin=${BOOTNODE_BIN:-"bootnode"}
-export oe_bin=${OPENETHEREUM_BIN:-"openethereum"}
 
-export genesis_log="$GENESIS_DIR/genesis.log"
-export genesis_json="$BOOT_DIR/genesis.json"
-export genesis_alloc_json="$GENESIS_DIR/alloc.json"
+export local_node0_boot_dir="$BOOT_DIR/local/node0"
+export local_node0_data_dir="$RUN_DIR/data/local/node0"
+export local_node0_log_file="$RUN_DIR/data/local/node0.log"
+export local_node0_neard_cmd="$neard_bin --home ${local_node0_data_dir} --verbose 10"
 
-export miner_data_dir="$RUN_DIR/data/miner"
-export miner_log="$RUN_DIR/miner.log"
-export miner_deep_mind_log="$RUN_DIR/miner.dmlog"
-export miner_cmd="$geth_bin --datadir ${miner_data_dir}"
+export local_node1_boot_dir="$BOOT_DIR/local/node1"
+export local_node1_data_dir="$RUN_DIR/data/local/node1"
+export local_node1_log_file="$RUN_DIR/data/local/node1.log"
+export local_node1_neard_cmd="$neard_bin --home ${local_node1_data_dir} --verbose 10"
 
-export oracle_data_dir="$RUN_DIR/data/oracle"
-export oracle_bootstrap_dir="$RUN_DIR/data/oracle/bootstrap"
-export oracle_log="$RUN_DIR/oracle.log"
-export oracle_deep_mind_log="$oracle_data_dir/oracle.dmlog"
-export oracle_transaction_log="$oracle_data_dir/oracle.md"
-export oracle_cmd="$geth_bin --datadir ${oracle_data_dir}"
+export local_node2_boot_dir="$BOOT_DIR/local/node2"
+export local_node2_data_dir="$RUN_DIR/data/local/node2"
+export local_node2_log_file="$RUN_DIR/data/local/node2.log"
+export local_node2_neard_cmd="$neard_bin --home ${local_node2_data_dir} --verbose 10"
 
-export syncer_geth_data_dir="$RUN_DIR/data/syncer_geth"
-export syncer_geth_log="$RUN_DIR/syncer_geth.log"
-export syncer_geth_deep_mind_log="$RUN_DIR/syncer_geth.dmlog"
-export syncer_geth_cmd="$geth_bin --datadir ${syncer_geth_data_dir}"
-
-export syncer_oe_data_dir="$RUN_DIR/data/syncer_oe"
-export syncer_oe_log="$RUN_DIR/syncer_oe.log"
-export syncer_oe_deep_mind_log="$RUN_DIR/syncer_oe.dmlog"
-export syncer_oe_cmd="$oe_bin --base-path=${syncer_oe_data_dir}"
-
-export bootstrap_data_dir="$RUN_DIR/data/bootstrap"
+export local_node3_boot_dir="$BOOT_DIR/local/node3"
+export local_node3_data_dir="$RUN_DIR/data/local/node3"
+export local_node3_log_file="$RUN_DIR/data/local/node3.log"
+export local_node3_neard_cmd="$neard_bin --home ${local_node3_data_dir} --verbose 10"
 
 recreate_data_directories() {
   local component
   for component in "$@"; do
-    # Dynamically access one of `miner_data_dir`, `syncer_geth_data_dir`, syncer_oe_data_dir` or `oracle_data_dir`
+    # Dynamically access like `<something>_data_dir`
+    boot_dir=`dynamic_var_name=${component}_boot_dir; echo ${!dynamic_var_name}`
     data_dir=`dynamic_var_name=${component}_data_dir; echo ${!dynamic_var_name}`
 
-    if [[ $component != "oracle" ]]; then
-      rm -rf "$data_dir"
-    fi
-
-    mkdir -p "$data_dir" &> /dev/null
-
-    if [[ $component == "miner" || $component == "syncer_geth" ]]; then
-      cp -a "$KEYSTORE_DIR" "$data_dir/keystore"
-      cp -a "$GENESIS_DIR/geth" "$data_dir/geth"
-    fi
-
-    if [[ $component == "miner" || $component == "oracle" ]]; then
-      cp -a "$BOOT_DIR/nodekey" "$data_dir/geth"
-    fi
-
-    if [[ $component == "syncer_geth" ]]; then
-      cp -a "$BOOT_DIR/static-nodes.json" "$data_dir/geth"
-    fi
-
-    if [[ $component == "syncer_oe" ]]; then
-      cp -a "$BOOT_DIR/chainspec.json" "$data_dir/"
-    fi
+    rm -rf "$data_dir" && mkdir -p "$data_dir" &> /dev/null
+    cp -R "${boot_dir}/" "${data_dir}"
+    cp "$BOOT_DIR/local/genesis.json" "${data_dir}/"
   done
 }
 
@@ -82,8 +54,8 @@ monitor() {
 
       echo "Process $name ($pid) died, exiting parent"
       if [[ "$process_log" != "" ]]; then
-        echo "Last 25 lines of log"
-        tail -n 25 $process_log
+        echo "Last 75 lines of log"
+        tail -n 75 $process_log
 
         echo
         echo "See full logs with 'less `relpath $process_log`'"

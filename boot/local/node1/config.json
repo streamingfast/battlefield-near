@@ -4,7 +4,7 @@
   "validator_key_file": "validator_key.json",
   "node_key_file": "node_key.json",
   "rpc": {
-    "addr": "0.0.0.0:3030",
+    "addr": "0.0.0.0:3031",
     "cors_allowed_origins": [
       "*"
     ],
@@ -26,7 +26,7 @@
     "endpoints": []
   },
   "network": {
-    "addr": "0.0.0.0:24567",
+    "addr": "0.0.0.0:24561",
     "external_address": "",
     "boot_nodes": "",
     "max_num_peers": 40,
