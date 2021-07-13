@@ -98,3 +98,8 @@ relpath() {
     echo $1
   fi
 }
+
+# public_key <key_file_path>
+public_key() {
+  printf $(cat "$1" | jq -r .public_key)
+}

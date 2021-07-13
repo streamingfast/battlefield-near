@@ -78,18 +78,44 @@ main() {
 
   monitor "node3" $node3_pid $parent_pid "$local_node3_log_file" &
 
-  echo "Giving 10s for nodes to be ready"
-  sleep 10s
+  echo "Giving 5s for nodes to be ready"
+  sleep 5s
 
-  # while true; do
-  #   ethc tx transfer b709229425af40b40573cb0726e95907752933c3 1 --signer-addr=3fb7c223f1ea395bf61c54d61b75e6458bf5474e --gas-limit=32000 --gas-price=1000000000 1> "$ethcLog"
-  #   ethc tx transfer 91a7dfffd2874b02337c1055ea6719615a215ccf 1 --signer-addr=b709229425af40b40573cb0726e95907752933c3 --gas-limit=32000 --gas-price=1000000000 1> "$ethcLog"
-  #   sleep 10
+  keys="${BOOT_DIR}/local/keystore"
+  near_cmd="near --node_url http://localhost:3030 --network_id local"
+  near_log_file="${RUN_DIR}/run_local.log"
 
-  #   ethc tx transfer ae8ad35a328d05e9b2717a8aa16a17ff13a5f59b 1 --signer-addr=3fb7c223f1ea395bf61c54d61b75e6458bf5474e --gas-limit=32000 --gas-price=1000000000 1> "$ethcLog"
-  #   ethc tx transfer 3fb7c223f1ea395bf61c54d61b75e6458bf5474e 1 --signer-addr=b709229425af40b40573cb0726e95907752933c3 --gas-limit=32000 --gas-price=1000000000 1> "$ethcLog"
-  #   sleep 10
-  # done
+  if [[ -f "${near_log_file}" ]]; then rm -rf "$near_log_file"; fi
+
+  echo ""
+
+  echo "Account commands" | tee -a "$near_log_file"
+  $near_cmd --masterAccount near --keyPath "${keys}/near.json" --publicKey "$(public_key ${keys}/bob.near.json)" create-account bob.near 1>> "$near_log_file"
+  sleep 1s
+  echo "" >> "$near_log_file"
+
+  echo "Transfer commands" | tee -a "$near_log_file"
+
+  # Trying to have a 0 balance here, the gas cost for a transfer is 453060601875000000000, so
+  # `math "100000000000000000000000000 - 453060601875000000000" == 99999546939398125000000000. When this exact
+  # amount is transferred (i.e. `99.999546939398125`), the chain complains that not enough Near are available
+  # to cover the state storage of 182 (in bytes?). It says 1820000000000000000000 yoctoNEAR more are required
+  # to cover the state storage for the account.
+  #
+  # The following value transfer below generates the message above
+  # $near_cmd --masterAccount near --keyPath "${keys}/bob.near.json" send bob.near near 99.999546939398125 1>> "$near_log_file"
+  #
+  # This one leads to account with `1826695476875000000000` while I wanted to left the account with `1820000000000000000000`
+  # $near_cmd --masterAccount near --keyPath "${keys}/bob.near.json" send bob.near near 99.997726939398125 1>> "$near_log_file"
+  #
+
+  $near_cmd --masterAccount near --keyPath "${keys}/bob.near.json" send bob.near near 50 1>> "$near_log_file"
+
+  sleep 1s
+  echo "" >> "$near_log_file"
+
+  echo "Done"
+  echo ""
 
   if [[ $wait_forever == "true" ]]; then
     echo "Sleeping forever"
