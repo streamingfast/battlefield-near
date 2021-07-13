@@ -128,9 +128,9 @@ main() {
 
 cleanup() {
   kill_pid "node0" $node0_pid
-  # kill_pid "node1" $node1_pid
-  # kill_pid "node2" $node2_pid
-  # kill_pid "sync1" $sync1_pid
+  kill_pid "node1" $node1_pid
+  kill_pid "node2" $node2_pid
+  kill_pid "node3" $node3_pid
 
   # Let's kill everything else
   kill $( jobs -p ) &> /dev/null
