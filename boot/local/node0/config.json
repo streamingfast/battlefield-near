@@ -47,7 +47,7 @@
       "secs": 60,
       "nanos": 0
     },
-    "skip_sync_wait": true,
+    "skip_sync_wait": false,
     "ban_window": {
       "secs": 10800,
       "nanos": 0

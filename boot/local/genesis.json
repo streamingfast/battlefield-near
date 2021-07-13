@@ -221,22 +221,22 @@
   "validators": [
     {
       "account_id": "node0",
-      "public_key": "ed25519:3mdPbHPFzTP4uKJ5mVBMH6Gu5GybmTb2citgqpVJeDEh",
+      "public_key": "ed25519:58Ra6ybSsjtAo8aHJk65Ed5mfUkVekR2aMBZo5Q8C8ir",
       "amount": "50000000000000000000000000000000"
     },
     {
       "account_id": "node1",
-      "public_key": "ed25519:F2DUGFqJMtDJy7D5X4CeNcyC1GRYty9EuyW44QdU4Xiv",
+      "public_key": "ed25519:Abhsyd856iWybo6mZ1tifZqRsmtrNpLRLjxhYBWknoUo",
       "amount": "50000000000000000000000000000000"
     },
     {
       "account_id": "node2",
-      "public_key": "ed25519:8gBDtyCGrq3PbmRA1Hm6SKkzqxQgSk1ATFxjzsQVBYKw",
+      "public_key": "ed25519:FFb6fBp3LvcRYJ9wnpSkVUjUvqttgCaAwMYRfYnsx6NS",
       "amount": "50000000000000000000000000000000"
     },
     {
       "account_id": "node3",
-      "public_key": "ed25519:Dq9KEJ9Gqdhe9ynuufqo1YE5hxUR7EumuWqaAQQJqpgh",
+      "public_key": "ed25519:6BP8JjVG4F34anEcLRZHdWjPC4Bk2A5VheC1JJLcZ5i",
       "amount": "50000000000000000000000000000000"
     }
   ],

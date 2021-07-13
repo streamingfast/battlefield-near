@@ -1,5 +1,5 @@
 {
-  "account_id": "",
-  "public_key": "ed25519:Dq9KEJ9Gqdhe9ynuufqo1YE5hxUR7EumuWqaAQQJqpgh",
-  "secret_key": "ed25519:5uRo8gcTvrc2nhCmU3rYxjCNURRUSwTABk7NyN5Ps577S6abpfHg9CxRx62kG6eEC7m1DeNaLhyzMwcEzKoYcHQm"
+  "account_id": "node3",
+  "public_key": "ed25519:6BP8JjVG4F34anEcLRZHdWjPC4Bk2A5VheC1JJLcZ5i",
+  "secret_key": "ed25519:2ovADTEpemeGzF8QFJLHQMBduCx4jcjo21haakPYkbCEs3Y8xEx7Q4uxhuUGyX557hURq8cXnQzAUwFArdJqtWkp"
 }
