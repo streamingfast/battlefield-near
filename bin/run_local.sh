@@ -52,7 +52,7 @@ main() {
   monitor "node0" $node0_pid $parent_pid "$local_node0_log_file" &
 
   echo "Starting Node1 process (log `relpath $local_node1_log_file`)"
-  ($local_node1_neard_cmd \
+  (FIREHOSE_ENABLED=true $local_node1_neard_cmd \
     run \
      --boot-nodes "${node0_pub_key}@127.0.0.1:24560" \
      $@ 2> "${local_node1_log_file}") &
@@ -81,41 +81,12 @@ main() {
   echo "Giving 5s for nodes to be ready"
   sleep 5s
 
-  keys="${BOOT_DIR}/local/keystore"
+  keys="${BOOT_DIR}/local/keystore/local"
   near_cmd="near --node_url http://localhost:3030 --network_id local"
-  near_log_file="${RUN_DIR}/run_local.log"
+  # near_log_file="${RUN_DIR}/run_local.log"
 
-  if [[ -f "${near_log_file}" ]]; then rm -rf "$near_log_file"; fi
-
-  echo ""
-
-  echo "Account commands" | tee -a "$near_log_file"
-  $near_cmd --masterAccount near --keyPath "${keys}/near.json" --publicKey "$(public_key ${keys}/bob.near.json)" create-account bob.near 1>> "$near_log_file"
-  sleep 1s
-  echo "" >> "$near_log_file"
-
-  echo "Transfer commands" | tee -a "$near_log_file"
-
-  # Trying to have a 0 balance here, the gas cost for a transfer is 453060601875000000000, so
-  # `math "100000000000000000000000000 - 453060601875000000000" == 99999546939398125000000000. When this exact
-  # amount is transferred (i.e. `99.999546939398125`), the chain complains that not enough Near are available
-  # to cover the state storage of 182 (in bytes?). It says 1820000000000000000000 yoctoNEAR more are required
-  # to cover the state storage for the account.
-  #
-  # The following value transfer below generates the message above
-  # $near_cmd --masterAccount near --keyPath "${keys}/bob.near.json" send bob.near near 99.999546939398125 1>> "$near_log_file"
-  #
-  # This one leads to account with `1826695476875000000000` while I wanted to left the account with `1820000000000000000000`
-  # $near_cmd --masterAccount near --keyPath "${keys}/bob.near.json" send bob.near near 99.997726939398125 1>> "$near_log_file"
-  #
-
-  $near_cmd --masterAccount near --keyPath "${keys}/bob.near.json" send bob.near near 50 1>> "$near_log_file"
-
-  sleep 1s
-  echo "" >> "$near_log_file"
-
-  echo "Done"
-  echo ""
+  # Execute all transactions
+  node -r ts-node/register src/index.ts
 
   if [[ $wait_forever == "true" ]]; then
     echo "Sleeping forever"
