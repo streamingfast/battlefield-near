@@ -5,9 +5,7 @@
   "node_key_file": "node_key.json",
   "rpc": {
     "addr": "0.0.0.0:3030",
-    "cors_allowed_origins": [
-      "*"
-    ],
+    "cors_allowed_origins": ["*"],
     "polling_config": {
       "polling_interval": {
         "secs": 0,
@@ -128,7 +126,7 @@
   },
   "tracked_accounts": [],
   "tracked_shards": [],
-  "archive": false,
+  "archive": true,
   "log_summary_style": "colored",
   "gc_blocks_limit": 2,
   "view_client_threads": 4,

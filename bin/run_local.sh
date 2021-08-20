@@ -16,11 +16,13 @@ main() {
 
   component="all"
   wait_forever=
+  repeat=
   pre_hook=
 
-  while getopts "hwp:" opt; do
+  while getopts "hwrp:" opt; do
     case $opt in
       h) usage && exit 0;;
+      r) repeat=true;;
       w) wait_forever=true;;
       p) pre_hook=$OPTARG;;
       \?) usage_error "Invalid option: -$OPTARG";;
@@ -52,7 +54,7 @@ main() {
   monitor "node0" $node0_pid $parent_pid "$local_node0_log_file" &
 
   echo "Starting Node1 process (log `relpath $local_node1_log_file`)"
-  (FIREHOSE_ENABLED=true $local_node1_neard_cmd \
+  (FIREHOSE_ENABLED=false $local_node1_neard_cmd \
     run \
      --boot-nodes "${node0_pub_key}@127.0.0.1:24560" \
      $@ 2> "${local_node1_log_file}") &
@@ -86,7 +88,12 @@ main() {
   # near_log_file="${RUN_DIR}/run_local.log"
 
   # Execute all transactions
-  node -r ts-node/register src/index.ts
+  args=""
+  if [[ $repeat == true ]]; then
+    args="--repeat"
+  fi
+
+  node -r ts-node/register src/index.ts "$args"
 
   if [[ $wait_forever == "true" ]]; then
     echo "Sleeping forever"
@@ -98,13 +105,12 @@ main() {
 }
 
 cleanup() {
-  kill_pid "node0" $node0_pid
-  kill_pid "node1" $node1_pid
-  kill_pid "node2" $node2_pid
-  kill_pid "node3" $node3_pid
+  kill_pid "node0" $node0_pid &
+  kill_pid "node1" $node1_pid &
+  kill_pid "node2" $node2_pid &
+  kill_pid "node3" $node3_pid &
 
-  # Let's kill everything else
-  kill $( jobs -p ) &> /dev/null
+   wait
 }
 
 usage_error() {
@@ -123,6 +129,7 @@ usage() {
   echo ""
   echo "Options"
   echo "    -h          Display help about this script"
+  echo "    -r          Repeat forever all transactions that are repeatable, useful to continuously generates data (pitfalls, depletes after ~100K blocks for now)"
   echo "    -w          Wait forever once all transactions have been included instead of quitting, useful for debugging purposes"
 }
 
