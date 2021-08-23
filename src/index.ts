@@ -2,6 +2,7 @@ import BN from "bn.js"
 import { connect, keyStores, utils } from "near-api-js"
 import { NearConfig } from "near-api-js/lib/near"
 import * as path from "path"
+import { deployContract } from "./chain"
 
 const networkId = "local"
 
@@ -18,15 +19,34 @@ async function main() {
   console.log("Starting")
 
   const near = await connect({ ...config, keyStore, masterAccount: "near" })
+  const battlefieldNearKeyPair = await keyStore.getKey(networkId, "battlefield.near")
   const bobNearKeyPair = await keyStore.getKey(networkId, "bob.near")
   const repeat = process.argv.some((arg) => arg === "--repeat")
 
   console.log("Account commands")
+  // FIXME: Promisfy.All + expand results to speed up stuff!
+  const battlefieldNear = await near.createAccount(
+    "battlefield.near",
+    battlefieldNearKeyPair.getPublicKey()
+  )
   const bobNear = await near.createAccount("bob.near", bobNearKeyPair.getPublicKey())
 
+  console.log("Contract commands")
+  const battlefieldContract = await deployContract("battlefield", battlefieldNear)
+
+  let i = 0
   do {
     console.log("Transfer commands")
     await bobNear.sendMoney("near", nearAmount("0.0001"))
+
+    console.log("Function Calls")
+    await battlefieldNear.functionCall({
+      contractId: battlefieldNear.accountId,
+      methodName: battlefieldCounterMethod(i),
+      args: {},
+    })
+
+    i++
   } while (repeat)
 
   // FIXME: Think about moving those into a log file directly
@@ -69,6 +89,14 @@ function nearAmount(value: number | string): BN {
   }
 
   return new BN(amount)
+}
+
+function battlefieldCounterMethod(i: number) {
+  if (i <= 12) {
+    return i % 2 == 0 ? "increment" : "decrement"
+  }
+
+  return "reset"
 }
 
 function prettify(data: any): String {
