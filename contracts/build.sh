@@ -11,10 +11,12 @@ main() {
   check_rustup_target
 
   clean=
+  force=
 
-  while getopts "hc" opt; do
+  while getopts "hcf" opt; do
     case $opt in
       h) usage && exit 0;;
+      f) force=true;;
       c) clean=true;;
       \?) usage_error "Invalid option: -$OPTARG";;
     esac
@@ -35,12 +37,13 @@ main() {
 
   echo "Compiling contracts"
   for contract in $contracts; do
-    build_contract "$contract" $solc_version
+    build_contract "$contract" $force
   done
 }
 
 build_contract() {
   name="$1"
+  force="$2"
 
   build_sum="./build/$name.sum"
   src_file="./$name/src/lib.rs"
@@ -53,14 +56,14 @@ build_contract() {
   debug "Source $source_checksum | ($build_sum)"
   debug "Actual $actual_checksum | ($src_file)"
 
-  if [[ "$source_checksum" != "$actual_checksum" ]]; then
+  if [[ $force == true || "$source_checksum" != "$actual_checksum" ]]; then
     echo "Compiling contract $1"
 
     pushd $name > /dev/null
       cargo build --target wasm32-unknown-unknown --release
     popd > /dev/null
 
-    cp "$name/target/release/wasm32-unknown-unknown/release/battlefield.wasm ./build"
+    cp "$name/target/wasm32-unknown-unknown/release/battlefield.wasm" ./build
     echo $actual_checksum > $build_sum
   else
     echo "Contract $name source checksum is same as built one, skipping"
@@ -121,6 +124,7 @@ usage() {
   echo ""
   echo "Options"
   echo "    -c          Clean prior building contracts"
+  echo "    -f          Force build skipping checksum checks"
   echo "    -h          Display help about this script"
 }
 
