@@ -1,44 +1,129 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, near_bindgen};
-
+use near_sdk::{env, near_bindgen, AccountId, Promise};
 near_sdk::setup_alloc!();
 
 #[near_bindgen]
 #[derive(Default, BorshDeserialize, BorshSerialize)]
-pub struct Counter {
-    val: i8,
+pub struct Storage {
+    computer: Computer,
+    counter: Counter,
 }
 
 #[near_bindgen]
-impl Counter {
+impl Storage {
+    #[init]
+    pub fn new(owner: String) -> Self {
+        Self {
+            computer: Computer {
+                owner,
+                ..Computer::default()
+            },
+            counter: Counter { val: 3 },
+        }
+    }
+
+    // Counter
+
     pub fn get_num(&self) -> i8 {
-        return self.val;
+        return self.counter.val;
     }
 
     pub fn increment(&mut self) {
         // Note: Unprotected addition (see https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_add)
-        self.val += 1;
-        let log_message = format!("Increased number to {}", self.val);
+        self.counter.val += 1;
+        let log_message = format!("Increased number to {}", self.counter.val);
         env::log(log_message.as_bytes());
         after_counter_change();
     }
 
     pub fn decrement(&mut self) {
         // Note: Unprotected substraction (see https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_add)
-        self.val -= 1;
-        let log_message = format!("Decreased number to {}", self.val);
+        self.counter.val -= 1;
+        let log_message = format!("Decreased number to {}", self.counter.val);
         env::log(log_message.as_bytes());
         after_counter_change();
     }
 
     pub fn reset(&mut self) {
-        self.val = 0;
+        self.counter.val = 0;
         env::log(b"Reset counter to zero");
     }
+
+    // Storage
+
+    pub fn add_file(&mut self, name: String) {
+        self.computer.disk.folder.files.push(name);
+        self.computer.disk.permissions.push(Permission {
+            id: 1,
+            writable: true,
+        });
+    }
+
+    // Payable & Transfers
+
+    #[payable]
+    pub fn payable_annotated_view() {
+        env::log("Burning fees received!.".as_bytes());
+    }
+
+    #[payable]
+    pub fn payable_annotated_mut(&mut self) {
+        env::log("Burning fees received!.".as_bytes());
+    }
+
+    pub fn payable_no_annotation() {
+        env::log("This will actually panic when deposit is part of the transaction, because we are not flagged as payable.".as_bytes());
+    }
+
+    pub fn transfer_money(&mut self, to: AccountId, amount: u64) {
+        Promise::new(to).transfer(amount as u128);
+    }
+
+    // Args
+
+    pub fn no_args() {}
 }
 
 fn after_counter_change() {
     env::log("Make sure you don't overflow, my friend.".as_bytes());
+}
+
+//
+/// Counter (Simple Structure, No Arguments)
+//
+
+#[derive(Default, BorshDeserialize, BorshSerialize)]
+pub struct Counter {
+    val: i8,
+}
+
+//
+/// Computer (Complex Structure)
+//
+
+#[derive(Default, BorshDeserialize, BorshSerialize)]
+pub struct Computer {
+    owner: String,
+    disk: Disk,
+}
+
+#[derive(Default, BorshDeserialize, BorshSerialize)]
+pub struct Disk {
+    name: String,
+    folder: Folder,
+    permissions: Vec<Permission>,
+}
+
+#[derive(Default, BorshDeserialize, BorshSerialize)]
+pub struct Folder {
+    id: i8,
+    files: Vec<String>,
+}
+
+#[derive(Default, BorshDeserialize, BorshSerialize)]
+pub struct Permission {
+    id: i64,
+    writable: bool,
 }
 
 #[cfg(test)]

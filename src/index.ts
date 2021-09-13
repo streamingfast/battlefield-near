@@ -3,6 +3,7 @@ import { connect, keyStores, utils } from "near-api-js"
 import { NearConfig } from "near-api-js/lib/near"
 import * as path from "path"
 import { deployContract } from "./chain"
+import { okTrx } from "./helpers"
 
 const networkId = "local"
 
@@ -37,16 +38,54 @@ async function main() {
   let i = 0
   do {
     console.log("Transfer commands")
-    await bobNear.sendMoney("near", nearAmount("0.0001"))
+    await okTrx("transfer: tiny amount", bobNear.sendMoney("near", nearAmount("0.0001")))
 
-    console.log("Function Calls")
-    await battlefieldNear.functionCall({
-      contractId: battlefieldNear.accountId,
-      methodName: battlefieldCounterMethod(i),
-      args: {},
-    })
+    console.log("Function Calls & Args")
+    await Promise.allSettled([
+      okTrx(
+        "function: standard counter",
+        battlefieldContract.functionCall(battlefieldCounterMethod(i), {})
+      ),
 
-    i++
+      okTrx(
+        "function: add to file",
+        battlefieldContract.functionCall("add_file", {
+          name: `file #${i}`,
+        })
+      ),
+
+      okTrx(
+        "function: providing args where not expected",
+        battlefieldContract.functionCall("no_args", {
+          name: `file #${i}`,
+          complex: {
+            value: "multi",
+          },
+        })
+      ),
+    ])
+
+    console.log("Failure(s)")
+    await Promise.allSettled([
+      battlefieldNear.functionCall({
+        contractId: battlefieldNear.accountId,
+        methodName: "does_not_exist_understood?",
+        args: {
+          name: `file #${i}`,
+          complex: {
+            value: "multi",
+          },
+        },
+      }),
+
+      battlefieldNear.functionCall({
+        contractId: battlefieldNear.accountId,
+        methodName: "payable_no_annotation",
+        args: {},
+        attachedDeposit: nearAmount("0.0001"),
+      }),
+    ]),
+      i++
   } while (repeat)
 
   // FIXME: Think about moving those into a log file directly
