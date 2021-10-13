@@ -32,7 +32,7 @@ recreate_data_directories() {
     data_dir=`dynamic_var_name=${component}_data_dir; echo ${!dynamic_var_name}`
 
     rm -rf "$data_dir" && mkdir -p "$data_dir" &> /dev/null
-    cp -R "${boot_dir}/" "${data_dir}"
+    cp -R "${boot_dir}"/* "${data_dir}"
     cp "$BOOT_DIR/local/genesis.json" "${data_dir}/"
   done
 }
